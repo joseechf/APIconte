@@ -281,7 +281,7 @@ export async function createUser(request, response, next) {
 export async function createTechnician(request, response, next) {
   try {
     validateRequestBody(request.body);
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
     const specialties = validateCatalogList(request.body.especialidades, 'especialidades');
     const locations = validateCatalogList(
       request.body.ubicaciones,
@@ -320,7 +320,7 @@ export async function getAllTechnicians(_request, response, next) {
 export async function updateTechnician(request, response, next) {
   try {
     validateRequestBody(request.body);
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
     let specialties;
     let locations;
 
@@ -361,9 +361,10 @@ export async function updateTechnician(request, response, next) {
 export async function rateTechnician(request, response, next) {
   try {
     validateRequestBody(request.body);
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
+    const technicianId = validateUserId(request.body.id_tecnico);
 
-    if (request.user.id === userId) {
+    if (userId === technicianId) {
       throw createAppError(
         'No puedes calificar tu propio perfil técnico.',
         403,
@@ -372,7 +373,7 @@ export async function rateTechnician(request, response, next) {
     }
 
     const rating = validateRating(request.body.calificacion);
-    const technician = await dataClient.rateTechnician(userId, request.user.id, rating);
+    const technician = await dataClient.rateTechnician(technicianId, userId, rating);
     return response.status(200).json({
       status: 200,
       message: 'todo bien',
@@ -385,7 +386,7 @@ export async function rateTechnician(request, response, next) {
 
 export async function getUser(request, response, next) {
   try {
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
     const user = await dataClient.getUser(userId);
     return response.status(200).json({
       status: 200,
@@ -400,7 +401,7 @@ export async function getUser(request, response, next) {
 export async function updateUser(request, response, next) {
   try {
     validateRequestBody(request.body);
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
     const attributes = {};
     const userMetadata = {};
 
@@ -445,7 +446,7 @@ export async function updateUser(request, response, next) {
 
 export async function deleteUser(request, response, next) {
   try {
-    const userId = validateUserId(request.params.id);
+    const userId = validateUserId(request.user?.id);
     await dataClient.deleteUser(userId);
 
     return response.status(200).json({
@@ -454,20 +455,6 @@ export async function deleteUser(request, response, next) {
     });
   } catch (error) {
     return next(preserveError(error, 'src/api.js:deleteUser', 500));
-  }
-}
-
-function requireOwnUser(request, response, next) {
-  try {
-    const userId = validateUserId(request.params.id);
-
-    if (request.user.id !== userId) {
-      throw createAppError('No puedes administrar otro usuario.', 403, 'src/api.js:requireOwnUser');
-    }
-
-    return next();
-  } catch (error) {
-    return next(preserveError(error, 'src/api.js:requireOwnUser', 500));
   }
 }
 
@@ -483,12 +470,12 @@ export function createPublicRouter() {
 export function createPrivateRouter() {
   const router = Router();
 
-  router.get('/users/:id', requireOwnUser, getUser);
-  router.patch('/users/:id', requireOwnUser, updateUser);
-  router.delete('/users/:id', requireOwnUser, deleteUser);
-  router.post('/technicians/:id', requireOwnUser, createTechnician);
-  router.patch('/technicians/:id', requireOwnUser, updateTechnician);
-  router.patch('/technicians/:id/rating', rateTechnician);
+  router.get('/users', getUser);
+  router.patch('/users', updateUser);
+  router.delete('/users', deleteUser);
+  router.post('/technicians', createTechnician);
+  router.patch('/technicians', updateTechnician);
+  router.patch('/technicians/rating', rateTechnician);
 
   return router;
 }

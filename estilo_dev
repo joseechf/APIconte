@@ -24,3 +24,4 @@
 # Buenas prácticas de seguridad de código
 
 1. Validar las entradas de datos: comprobar que no sean vacías, que tengan tamaños acordes a los de las tablas y que correspondan al tipo de dato esperado.
+2. No recibir ni enviar datos en la URL; utilizar el cuerpo de la solicitud o los encabezados.

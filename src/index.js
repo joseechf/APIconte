@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { supabase } from './config/supabase.js';
 import { createPrivateRouter, createPublicRouter } from './api.js';
 
@@ -9,7 +11,7 @@ const port = process.env.PORT ?? 3000;
 app.use(express.json());
 app.use('/api', createPublicRouter());
 
-async function requireSession(request, response, next) {
+export async function requireSession(request, response, next) {
   try {
     const authorization = request.headers.authorization;
 
@@ -77,4 +79,6 @@ function startServer() {
   console.log(`API disponible en http://localhost:${port}`);
 }
 
-app.listen(port, startServer);
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  app.listen(port, startServer);
+}
