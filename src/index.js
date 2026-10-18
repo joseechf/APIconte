@@ -96,7 +96,13 @@ function errorHandler(error, _request, response, _next) {
 
 app.use(errorHandler);
 
-function startServer() {
+function startServer(error) {
+  if (error) {
+    console.error(`No se pudo iniciar la API en el puerto ${port}: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
+
   console.log(`API disponible en http://localhost:${port}`);
 }
 

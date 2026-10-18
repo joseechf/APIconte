@@ -430,7 +430,6 @@ export async function getUser(request, response, next) {
   try {
     const userId = validateUserId(request.user?.id);
     const user = await dataClient.getUserWithTechnicianData(userId);
-    const user = await dataClient.getUser(userId);
     return response.status(200).json({
       status: 200,
       message: 'todo bien',

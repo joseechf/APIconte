@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPrivateRouter, getUser } from '../src/api.js';
-<<<<<<< HEAD
 import { DataClient, dataClient } from '../src/data.client.js';
-=======
-import { dataClient } from '../src/data.client.js';
->>>>>>> ediciones-graciela
 
 const USER_ID = '16a47b2d-3ca1-4fdb-8fe8-a1398f1a3d09';
 
@@ -55,7 +51,6 @@ function executePutUser() {
   return { nextCalled, nextError };
 }
 
-<<<<<<< HEAD
 test('getUserWithTechnicianData devuelve datos normales cuando no hay perfil técnico', async function () {
   const client = new DataClient();
   const user = {
@@ -123,17 +118,6 @@ test('GET /api/users obtiene al usuario autenticado con sus datos técnicos', { 
   };
 
   dataClient.getUserWithTechnicianData = async function getUserWithTechnicianDataStub(userId) {
-=======
-test('GET /api/users obtiene al usuario autenticado', { concurrency: false }, async function () {
-  const originalGetUser = dataClient.getUser;
-  const expectedUser = {
-    id: USER_ID,
-    email: 'tecnico@correo.com',
-    user_metadata: { name: 'Ana Gómez', phone: '61234567' }
-  };
-
-  dataClient.getUser = async function getUserStub(userId) {
->>>>>>> ediciones-graciela
     assert.equal(userId, USER_ID);
     return expectedUser;
   };
@@ -149,11 +133,7 @@ test('GET /api/users obtiene al usuario autenticado', { concurrency: false }, as
       user: expectedUser
     });
   } finally {
-<<<<<<< HEAD
     dataClient.getUserWithTechnicianData = originalGetUserWithTechnicianData;
-=======
-    dataClient.getUser = originalGetUser;
->>>>>>> ediciones-graciela
   }
 });
 
