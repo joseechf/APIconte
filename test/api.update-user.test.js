@@ -36,7 +36,9 @@ async function executeUpdateUser(body) {
 }
 
 function executePutUser() {
-  const router = createPrivateRouter();
+  const router = createPrivateRouter(function allowSession(_request, _response, next) {
+    return next();
+  });
   const request = {
     baseUrl: '/api',
     method: 'PUT',

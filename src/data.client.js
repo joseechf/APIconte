@@ -128,11 +128,14 @@ export class DataClient {
     }
   }
 
-  async getAllTechnicians() {
+  async getAllUserTechnicians() {
     try {
       const pool = getPostgresPool();
       const { rows } = await pool.query(`
         select
+          usuario.email,
+          usuario.raw_user_meta_data ->> 'name' as name,
+          usuario.raw_user_meta_data ->> 'phone' as phone,
           tecnico.calificacion::float8 as calificacion,
           coalesce(
             (
@@ -157,12 +160,13 @@ export class DataClient {
             '[]'::json
           ) as ubicaciones
         from public.tecnico as tecnico
+        inner join auth.users as usuario on usuario.id = tecnico.id_tecnico
         order by tecnico.calificacion desc, tecnico.id_tecnico
       `);
 
       return rows;
     } catch (error) {
-      throw preserveClientError(error, 'src/data.client.js:getAllTechnicians');
+      throw preserveClientError(error, 'src/data.client.js:getAllUserTechnicians');
     }
   }
 

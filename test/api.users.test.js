@@ -30,6 +30,31 @@ async function executeCreateUser(body) {
   return { response, nextError };
 }
 
+function executeGetAllUserTechnicians() {
+  const router = createPublicRouter();
+  const request = {
+    baseUrl: '/api',
+    method: 'GET',
+    originalUrl: '/api/getallusertechnicians',
+    url: '/getallusertechnicians'
+  };
+  const response = createResponse();
+
+  return new Promise(function resolveRequest(resolve) {
+    const sendJson = response.json;
+
+    response.json = function json(body) {
+      sendJson.call(this, body);
+      resolve({ response, nextError: undefined });
+      return this;
+    };
+
+    router.handle(request, response, function next(error) {
+      resolve({ response, nextError: error });
+    });
+  });
+}
+
 function executeGetUsers() {
   const router = createPublicRouter();
   const request = {
@@ -164,6 +189,38 @@ test('POST /api/users rechaza un intento de XSS', async function () {
   assert.equal(nextError.statusCode, 400);
   assert.equal(nextError.message, 'name no es válido.');
   assert.equal(nextError.origin, 'src/api.js:validateName');
+});
+
+test('GET /api/getallusertechnicians devuelve usuarios técnicos con datos públicos', { concurrency: false }, async function () {
+  const originalGetAllUserTechnicians = dataClient.getAllUserTechnicians;
+  const expectedTechnicians = [
+    {
+      email: 'tecnico@correo.com',
+      name: 'Ana Gómez',
+      phone: '61234567',
+      calificacion: 4.5,
+      especialidades: [{ especialidad: 'Electricista', experiencia: 4 }],
+      ubicaciones: ['Panamá']
+    }
+  ];
+
+  dataClient.getAllUserTechnicians = async function getAllUserTechniciansStub() {
+    return expectedTechnicians;
+  };
+
+  try {
+    const { response, nextError } = await executeGetAllUserTechnicians();
+
+    assert.equal(nextError, undefined);
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body, {
+      status: 200,
+      message: 'todo bien',
+      technicians: expectedTechnicians
+    });
+  } finally {
+    dataClient.getAllUserTechnicians = originalGetAllUserTechnicians;
+  }
 });
 
 test('GET /api/users no está registrado como endpoint público', function () {

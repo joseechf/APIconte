@@ -16,7 +16,7 @@ app.use(express.json());
 app.use('/api', createPublicRouter());*/
 
 //agregado por graciela para reemplazar lo de arriba
-const app = express();
+export const app = express();
 const port = process.env.PORT ?? 3000;
 
 app.use(cors({
@@ -60,8 +60,7 @@ export async function requireSession(request, response, next) {
   }
 }
 
-// Solo las rutas montadas después de este punto requieren una sesión válida.
-app.use('/api', requireSession, createPrivateRouter());
+app.use('/api', createPrivateRouter(requireSession));
 
 function health(_request, response) {
   // La instancia se importa para validar que las credenciales estén configuradas.
@@ -77,7 +76,7 @@ app.get('/health', health);
 function notFound(request, response) {
   return response.status(404).json({
     status: 404,
-    message: `Ruta no encontrada: ${request.method} ${request.path}`,
+    message: 'Esa ruta no existe',
     origin: 'src/index.js:notFound'
   });
 }

@@ -346,16 +346,16 @@ export async function createTechnician(request, response, next) {
   }
 }
 
-export async function getAllTechnicians(_request, response, next) {
+export async function getAllUserTechnicians(_request, response, next) {
   try {
-    const technicians = await dataClient.getAllTechnicians();
+    const technicians = await dataClient.getAllUserTechnicians();
     return response.status(200).json({
       status: 200,
       message: 'todo bien',
       technicians
     });
   } catch (error) {
-    return next(preserveError(error, 'src/api.js:getAllTechnicians', 500));
+    return next(preserveError(error, 'src/api.js:getAllUserTechnicians', 500));
   }
 }
 
@@ -504,20 +504,20 @@ export function createPublicRouter() {
   const router = Router();
 
   router.post('/users', createUser);
-  router.get('/technicians', getAllTechnicians);
+  router.get('/getallusertechnicians', getAllUserTechnicians);
 
   return router;
 }
 
-export function createPrivateRouter() {
+export function createPrivateRouter(requireSession) {
   const router = Router();
 
-  router.get('/users', getUser);
-  router.patch('/users', updateUser);
-  router.delete('/users', deleteUser);
-  router.post('/technicians', createTechnician);
-  router.patch('/technicians', updateTechnician);
-  router.patch('/technicians/rating', rateTechnician);
+  router.get('/users', requireSession, getUser);
+  router.patch('/users', requireSession, updateUser);
+  router.delete('/users', requireSession, deleteUser);
+  router.post('/technicians', requireSession, createTechnician);
+  router.patch('/technicians', requireSession, updateTechnician);
+  router.patch('/technicians/rating', requireSession, rateTechnician);
 
   return router;
 }

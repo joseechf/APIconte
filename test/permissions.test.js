@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rateTechnician } from '../src/api.js';
-import { requireSession } from '../src/index.js';
+import { app, requireSession } from '../src/index.js';
 import { supabase } from '../src/config/supabase.js';
 import { dataClient } from '../src/data.client.js';
 
@@ -42,6 +42,40 @@ test('un endpoint privado rechaza una solicitud sin token Bearer', async functio
   assert.equal(result.nextError.statusCode, 401);
   assert.equal(result.nextError.message, 'Se requiere un token Bearer.');
   assert.equal(result.nextError.origin, 'src/index.js:requireSession');
+});
+
+test('una ruta inexistente responde 404 sin solicitar un token', { concurrency: false }, async function () {
+  const request = {
+    headers: {},
+    method: 'GET',
+    originalUrl: '/api/ruta-inexistente',
+    url: '/api/ruta-inexistente'
+  };
+  const response = createResponse();
+  response.setHeader = function setHeader() {};
+  response.getHeader = function getHeader() {};
+  response.removeHeader = function removeHeader() {};
+
+  await new Promise(function executeApplication(resolve, reject) {
+    const sendJson = response.json;
+
+    response.json = function json(body) {
+      sendJson.call(this, body);
+      resolve();
+      return this;
+    };
+
+    app.handle(request, response, function next(error) {
+      reject(error ?? new Error('La aplicación no respondió a la solicitud.'));
+    });
+  });
+
+  assert.equal(response.statusCode, 404);
+  assert.deepEqual(response.body, {
+    status: 404,
+    message: 'Esa ruta no existe',
+    origin: 'src/index.js:notFound'
+  });
 });
 
 test('un endpoint privado rechaza un token inválido', { concurrency: false }, async function () {
