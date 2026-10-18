@@ -1,0 +1,27 @@
+# Estilo del código
+
+1. Mantener complejidad lineal o logarítmica siempre que sea posible. Si no es posible, mostrar las opciones para validación.
+2. Evitar promesas; utilizar `async`/`await`.
+3. Evitar crear muchos archivos para una solución que podría ser simple en un solo archivo solo por aplicar clean code. Priorizar la legibilidad frente a la teoría; en estos casos, preguntar primero.
+4. Evitar interfaces, abstracciones y herencia cuando no sean necesarias y solo se usen para una escalabilidad futura. Preguntar primero.
+5. Preferir funciones normales antes que funciones flecha y funciones pasadas como variables, pues pueden ser confusas de leer.
+
+# Buenas prácticas de manejo de base de datos
+
+1. Al crear la conexión a la base de datos, utilizar el patrón singleton para la clase de conexión.
+2. En las consultas, priorizar evitar inyecciones SQL, CSRF y XSS.
+3. Utilizar transacciones en todas las operaciones que requieran más de una consulta SQL.
+4. Utilizar `SELECT FOR UPDATE` para concurrencia en todos los `SELECT` previos a una edición de la base de datos, siempre dentro de una transacción.
+5. Utilizar siempre `try`/`catch`.
+6. Separar las consultas al cliente de los endpoints para evitar acoplamiento fuerte. El endpoint solo debe invocar un método del cliente, por ejemplo `cliente.obtenerUsuario(identificador)`.
+7. Respetar una única responsabilidad por cada método del cliente, es decir, la clase que ejecuta las consultas a la base de datos.
+
+# Manejo de errores
+
+1. Incluir el mensaje original y el lugar donde se originó el error.
+2. Todos los endpoints deben devolver un código HTTP y un mensaje. En respuestas exitosas, el mensaje debe ser `todo bien`; en errores, debe incluirse el mensaje original.
+
+# Buenas prácticas de seguridad de código
+
+1. Validar las entradas de datos: comprobar que no sean vacías, que tengan tamaños acordes a los de las tablas y que correspondan al tipo de dato esperado.
+2. No recibir ni enviar datos en la URL; utilizar el cuerpo de la solicitud o los encabezados.
