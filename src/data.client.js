@@ -33,6 +33,19 @@ function preserveClientError(error, origin) {
   return error;
 }
 
+function mergeUserAndTechnician(user, technician) {
+  if (!technician) {
+    return user;
+  }
+
+  return {
+    ...user,
+    calificacion: technician.calificacion,
+    especialidades: technician.especialidades,
+    ubicaciones: technician.ubicaciones
+  };
+}
+
 export class DataClient {
   async createUser(credentials) {
     try {
@@ -73,6 +86,17 @@ export class DataClient {
       return data.user;
     } catch (error) {
       throw preserveClientError(error, 'src/data.client.js:getUser');
+    }
+  }
+
+  async getUserWithTechnicianData(userId) {
+    try {
+      const user = await this.getUser(userId);
+      const technician = await this.getOptionalTechnicianByUserId(userId);
+
+      return mergeUserAndTechnician(user, technician);
+    } catch (error) {
+      throw preserveClientError(error, 'src/data.client.js:getUserWithTechnicianData');
     }
   }
 
@@ -141,6 +165,45 @@ export class DataClient {
       return rows;
     } catch (error) {
       throw preserveClientError(error, 'src/data.client.js:getAllTechnicians');
+    }
+  }
+
+  async getOptionalTechnicianByUserId(userId) {
+    try {
+      const pool = getPostgresPool();
+      const { rows } = await pool.query(
+        `select
+           tecnico.calificacion::float8 as calificacion,
+           coalesce(
+             (
+               select json_agg(
+                 json_build_object(
+                   'especialidad', trabajo.id_especialidad,
+                   'experiencia', trabajo.experiencia
+                 )
+                 order by trabajo.id_especialidad
+               )
+               from public.tecnico_trabajo as trabajo
+               where trabajo.id_tecnico = tecnico.id_tecnico
+             ),
+             '[]'::json
+           ) as especialidades,
+           coalesce(
+             (
+               select json_agg(ubicacion.provincia order by ubicacion.provincia)
+               from public.tecnico_ubicacion as ubicacion
+               where ubicacion.id_tecnico = tecnico.id_tecnico
+             ),
+             '[]'::json
+           ) as ubicaciones
+         from public.tecnico as tecnico
+         where tecnico.id_tecnico = $1`,
+        [userId]
+      );
+
+      return rows[0] ?? null;
+    } catch (error) {
+      throw preserveClientError(error, 'src/data.client.js:getOptionalTechnicianByUserId');
     }
   }
 

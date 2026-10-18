@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPrivateRouter, getUser } from '../src/api.js';
-import { dataClient } from '../src/data.client.js';
+import { DataClient, dataClient } from '../src/data.client.js';
 
 const USER_ID = '16a47b2d-3ca1-4fdb-8fe8-a1398f1a3d09';
 
@@ -51,15 +51,73 @@ function executePutUser() {
   return { nextCalled, nextError };
 }
 
-test('GET /api/users obtiene al usuario autenticado', { concurrency: false }, async function () {
-  const originalGetUser = dataClient.getUser;
+test('getUserWithTechnicianData devuelve datos normales cuando no hay perfil técnico', async function () {
+  const client = new DataClient();
+  const user = {
+    id: USER_ID,
+    email: 'usuario@correo.com',
+    user_metadata: { name: 'Luis Pérez', phone: '61234567' }
+  };
+
+  client.getUser = async function getUserStub(userId) {
+    assert.equal(userId, USER_ID);
+    return user;
+  };
+  client.getOptionalTechnicianByUserId = async function getOptionalTechnicianByUserIdStub(userId) {
+    assert.equal(userId, USER_ID);
+    return null;
+  };
+
+  const result = await client.getUserWithTechnicianData(USER_ID);
+
+  assert.deepEqual(result, user);
+  assert.equal('calificacion' in result, false);
+  assert.equal('especialidades' in result, false);
+  assert.equal('ubicaciones' in result, false);
+});
+
+test('getUserWithTechnicianData unifica datos falsos de usuario y técnico', async function () {
+  const client = new DataClient();
+
+  client.getUser = async function getUserStub() {
+    return {
+      id: USER_ID,
+      email: 'tecnico@correo.com',
+      user_metadata: { name: 'Ana Gómez', phone: '69876543' }
+    };
+  };
+  client.getOptionalTechnicianByUserId = async function getOptionalTechnicianByUserIdStub() {
+    return {
+      calificacion: 4.5,
+      especialidades: [{ especialidad: 'Electricista', experiencia: 4 }],
+      ubicaciones: ['Panama', 'Herrera']
+    };
+  };
+
+  const result = await client.getUserWithTechnicianData(USER_ID);
+
+  assert.deepEqual(result, {
+    id: USER_ID,
+    email: 'tecnico@correo.com',
+    user_metadata: { name: 'Ana Gómez', phone: '69876543' },
+    calificacion: 4.5,
+    especialidades: [{ especialidad: 'Electricista', experiencia: 4 }],
+    ubicaciones: ['Panama', 'Herrera']
+  });
+});
+
+test('GET /api/users obtiene al usuario autenticado con sus datos técnicos', { concurrency: false }, async function () {
+  const originalGetUserWithTechnicianData = dataClient.getUserWithTechnicianData;
   const expectedUser = {
     id: USER_ID,
     email: 'tecnico@correo.com',
-    user_metadata: { name: 'Ana Gómez', phone: '61234567' }
+    user_metadata: { name: 'Ana Gómez', phone: '61234567' },
+    calificacion: 4.5,
+    especialidades: [{ especialidad: 'Electricista', experiencia: 4 }],
+    ubicaciones: ['Panama']
   };
 
-  dataClient.getUser = async function getUserStub(userId) {
+  dataClient.getUserWithTechnicianData = async function getUserWithTechnicianDataStub(userId) {
     assert.equal(userId, USER_ID);
     return expectedUser;
   };
@@ -75,7 +133,7 @@ test('GET /api/users obtiene al usuario autenticado', { concurrency: false }, as
       user: expectedUser
     });
   } finally {
-    dataClient.getUser = originalGetUser;
+    dataClient.getUserWithTechnicianData = originalGetUserWithTechnicianData;
   }
 });
 
