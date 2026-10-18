@@ -25,6 +25,19 @@ const VALID_PROVINCES = new Set([
   "Cocle",
   "Darien",
 ]);
+const VALID_SPECIALTIES = new Set([
+  'Refrigeración',
+  'Soldador',
+  'Electricista',
+  'Plomero',
+  'Albañil',
+  'Pintor',
+  'Mecánico',
+  'Herrero',
+  'Ebanista',
+  'Carpintero',
+  'Vidriero'
+]);
 
 function createAppError(message, statusCode, origin) {
   const error = new Error(message);
@@ -179,7 +192,7 @@ function validateCatalogList(values, fieldName, allowedValues) {
 
     if (allowedValues && !allowedValues.has(normalizedValue)) {
       throw createAppError(
-        `${normalizedValue} no es una ubicación válida.`,
+        `${normalizedValue} no es un valor permitido para ${fieldName}.`,
         400,
         'src/api.js:validateCatalogList'
       );
@@ -233,6 +246,14 @@ function validateTechnicianSpecialties(specialties) {
     ) {
       throw createAppError(
         'Cada especialidad debe tener texto no vacío de máximo 20 caracteres.',
+        400,
+        'src/api.js:validateTechnicianSpecialties'
+      );
+    }
+
+    if (!VALID_SPECIALTIES.has(name)) {
+      throw createAppError(
+        `${name} no es una especialidad permitida.`,
         400,
         'src/api.js:validateTechnicianSpecialties'
       );
@@ -299,7 +320,11 @@ export async function createTechnician(request, response, next) {
   try {
     validateRequestBody(request.body);
     const userId = validateUserId(request.user?.id);
-    const specialties = validateCatalogList(request.body.especialidades, 'especialidades');
+    const specialties = validateCatalogList(
+      request.body.especialidades,
+      'especialidades',
+      VALID_SPECIALTIES
+    );
     const locations = validateCatalogList(
       request.body.ubicaciones,
       'ubicaciones',

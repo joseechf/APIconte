@@ -4,3 +4,4 @@ node_modules/
 *.log
 work/
 src/data.client.old.js
+progreso/

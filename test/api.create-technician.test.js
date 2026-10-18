@@ -127,6 +127,16 @@ test('POST /api/technicians rechaza una entrada XSS', async function () {
   assert.equal(nextError.origin, 'src/api.js:validateCatalogList');
 });
 
+test('POST /api/technicians rechaza especialidades fuera del catálogo', async function () {
+  const { nextError } = await executeCreateTechnician({
+    especialidades: ['Jardinero'],
+    ubicaciones: []
+  });
+
+  assert.equal(nextError.statusCode, 400);
+  assert.equal(nextError.origin, 'src/api.js:validateCatalogList');
+});
+
 test('DELETE /api/technicians no está registrado como endpoint privado', function () {
   const result = executeDeleteTechnician();
 

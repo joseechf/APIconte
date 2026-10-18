@@ -167,6 +167,15 @@ test('PATCH /api/technicians rechaza una entrada XSS', async function () {
   assert.equal(nextError.origin, 'src/api.js:validateTechnicianSpecialties');
 });
 
+test('PATCH /api/technicians rechaza especialidades fuera del catálogo', async function () {
+  const { nextError } = await executeUpdateTechnician({
+    especialidades: [{ especialidad: 'Jardinero', experiencia: 1 }]
+  });
+
+  assert.equal(nextError.statusCode, 400);
+  assert.equal(nextError.origin, 'src/api.js:validateTechnicianSpecialties');
+});
+
 test('PUT /api/technicians no está registrado en lugar de PATCH', function () {
   const result = executePutTechnician();
 
