@@ -327,7 +327,7 @@ export async function getAllTechnicians(_request, response, next) {
     const technicians = await dataClient.getAllTechnicians();
     return response.status(200).json({
       status: 200,
-      message: 'todo bien',
+      message: 'dice graciela que está todo nice',
       technicians
     });
   } catch (error) {
