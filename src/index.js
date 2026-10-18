@@ -1,15 +1,36 @@
 import 'dotenv/config';
 import express from 'express';
+// agregado por graciela, CORS
+import cors from 'cors';
+// listo
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { supabase } from './config/supabase.js';
 import { createPrivateRouter, createPublicRouter } from './api.js';
 
-const app = express();
+//editado por graciela, CORS
+/*const app = express();
 const port = process.env.PORT ?? 3000;
 
 app.use(express.json());
+app.use('/api', createPublicRouter());*/
+
+//agregado por graciela para reemplazar lo de arriba
+const app = express();
+const port = process.env.PORT ?? 3000;
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://192.168.60.11:5173'
+  ],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
 app.use('/api', createPublicRouter());
+//listo
 
 export async function requireSession(request, response, next) {
   try {
@@ -31,7 +52,7 @@ export async function requireSession(request, response, next) {
       sessionError.origin = 'Supabase Auth:getUser';
       throw sessionError;
     }
-
+    console.log('token verificado')
     request.user = data.user;
     return next();
   } catch (error) {

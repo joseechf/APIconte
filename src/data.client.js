@@ -45,7 +45,6 @@ function mergeUserAndTechnician(user, technician) {
     ubicaciones: technician.ubicaciones
   };
 }
-
 export class DataClient {
   async createUser(credentials) {
     try {
@@ -99,7 +98,6 @@ export class DataClient {
       throw preserveClientError(error, 'src/data.client.js:getUserWithTechnicianData');
     }
   }
-
   async updateUser(userId, attributes) {
     try {
       const admin = getSupabaseAdminClient();
@@ -206,7 +204,6 @@ export class DataClient {
       throw preserveClientError(error, 'src/data.client.js:getOptionalTechnicianByUserId');
     }
   }
-
   async createTechnician(userId, specialties, locations) {
     const pool = getPostgresPool();
     let connection;

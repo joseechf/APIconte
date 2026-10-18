@@ -10,7 +10,21 @@ const MAX_CATALOG_VALUE_LENGTH = 20;
 const MAX_EXPERIENCE = 2147483647;
 const MIN_RATING = 1;
 const MAX_RATING = 5;
-const VALID_PROVINCES = new Set(['Herrera', 'Los Santos', 'Panama', 'Cocle', 'Veraguas', 'Darien']);
+const VALID_PROVINCES = new Set([
+  "Bocas del Toro",
+  "Coclé",
+  "Colón",
+  "Chiriquí",
+  "Darién",
+  "Herrera",
+  "Los Santos",
+  "Panamá",
+  "Panamá Oeste",
+  "Veraguas",
+  "Panama",
+  "Cocle",
+  "Darien",
+]);
 
 function createAppError(message, statusCode, origin) {
   const error = new Error(message);
@@ -263,10 +277,12 @@ function validateRating(rating) {
 }
 
 export async function createUser(request, response, next) {
+  console.log('creando usuario')
   try {
     validateRequestBody(request.body);
     const credentials = validateCredentials(request.body);
     const data = await dataClient.createUser(credentials);
+    console.log('todo bien...')
     return response.status(201).json({
       status: 201,
       message: 'todo bien',
@@ -274,6 +290,7 @@ export async function createUser(request, response, next) {
       session: data.session
     });
   } catch (error) {
+    console.log(error)
     return next(preserveError(error, 'src/api.js:createUser', 500));
   }
 }
@@ -388,6 +405,7 @@ export async function getUser(request, response, next) {
   try {
     const userId = validateUserId(request.user?.id);
     const user = await dataClient.getUserWithTechnicianData(userId);
+    const user = await dataClient.getUser(userId);
     return response.status(200).json({
       status: 200,
       message: 'todo bien',
